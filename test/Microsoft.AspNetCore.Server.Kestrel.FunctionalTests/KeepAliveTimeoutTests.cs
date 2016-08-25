@@ -13,7 +13,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
 {
     public class KeepAliveTimeoutTests
     {
-        private const int KeepAliveTimeout = 1;
+        private const int KeepAliveTimeout = 1; // seconds
+        private const int LongDelay = 5000; // milliseconds
+        private const int ShortDelay = 250; // milliseconds
 
         [Fact]
         public async Task ConnectionClosedWhenKeepAliveTimeoutExpires()
@@ -28,7 +30,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "");
                     await ReceiveResponse(connection);
 
-                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+                    await Task.Delay(LongDelay);
 
                     await Assert.ThrowsAsync<IOException>(async () =>
                     {
@@ -60,7 +62,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                              "");
                     await ReceiveResponse(connection);
 
-                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+                    await Task.Delay(LongDelay);
 
                     await Assert.ThrowsAsync<IOException>(async () =>
                     {
@@ -81,14 +83,14 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
             {
                 using (var connection = new TestConnection(host.GetPort()))
                 {
-                    for (var i = 0; i < 5; i++)
+                    for (var i = 0; i < 10; i++)
                     {
                         await connection.Send(
                             "GET / HTTP/1.1",
                             "",
                             "");
                         await ReceiveResponse(connection);
-                        await Task.Delay((int)(KeepAliveTimeout * 0.5 * 1000));
+                        await Task.Delay(ShortDelay);
                     }
                 }
             }
@@ -113,7 +115,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                              "",
                              "");
                         await ReceiveResponse(connection);
-                        await Task.Delay((int)(KeepAliveTimeout * 0.5 * 1000));
+                        await Task.Delay(ShortDelay);
                     }
                 }
             }
@@ -131,7 +133,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "Content-Length: 8",
                         "",
                         "a");
-                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+                    await Task.Delay(LongDelay);
                     await connection.Send("bcdefgh");
                     await ReceiveResponse(connection);
                 }
@@ -151,7 +153,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "",
                             "5", "hello",
                             "");
-                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+                    await Task.Delay(LongDelay);
                     await connection.Send(
                             "6", " world",
                             "0",
@@ -169,7 +171,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
             {
                 using (var connection = new TestConnection(host.GetPort()))
                 {
-                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+                    await Task.Delay(LongDelay);
                     await Assert.ThrowsAsync<IOException>(async () =>
                     {
                         await connection.Send(
