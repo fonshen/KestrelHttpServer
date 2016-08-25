@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
                     _loop.Init(_engine.Libuv);
                     _post.Init(_loop, OnPost, EnqueueCloseHandle);
                     _heartbeatTimer.Init(_loop, EnqueueCloseHandle);
-                    _heartbeatTimer.Start(OnHeartbeat, _heartbeatMilliseconds, _heartbeatMilliseconds);
+                    _heartbeatTimer.Start(OnHeartbeat, 1000, 1000);
                     _initCompleted = true;
                     tcs.SetResult(0);
                 }
@@ -337,13 +337,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
 
         private void OnHeartbeat(UvTimerHandle timer)
         {
-            var now = _loop.Now();
-
             Walk(ptr =>
             {
                 var handle = UvMemory.FromIntPtr<UvHandle>(ptr);
                 var connection = (handle as UvStreamHandle)?.Connection;
-                connection?.Tick(now);
+                connection?.Tick();
             });
         }
 
