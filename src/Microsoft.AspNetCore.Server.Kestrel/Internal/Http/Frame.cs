@@ -215,10 +215,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             }
         }
 
-        public bool HasResponseStarted
-        {
-            get { return _requestProcessingStatus == RequestProcessingStatus.ResponseStarted; }
-        }
+        public bool HasResponseStarted { get; private set; }
 
         protected FrameRequestHeaders FrameRequestHeaders { get; private set; }
 
@@ -282,6 +279,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             _onStarting = null;
             _onCompleted = null;
 
+            HasResponseStarted = false;
             _requestProcessingStatus = RequestProcessingStatus.RequestPending;
             _keepAlive = false;
             _autoChunk = false;
@@ -608,7 +606,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 return;
             }
 
-            _requestProcessingStatus = RequestProcessingStatus.ResponseStarted;
+            HasResponseStarted = true;
 
             var statusBytes = ReasonPhrases.ToStatusBytes(StatusCode, ReasonPhrase);
 
@@ -1301,8 +1299,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         public enum RequestProcessingStatus
         {
             RequestPending,
-            RequestStarted,
-            ResponseStarted
+            RequestStarted
         }
     }
 }
