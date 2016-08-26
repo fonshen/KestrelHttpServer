@@ -62,11 +62,7 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         {
         }
 
-        public void NotifyRequestStarted()
-        {
-        }
-
-        public void NotifyRequestFinished()
+        public void Stop()
         {
         }
 

@@ -8,8 +8,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         void Pause();
         void Resume();
         void End(ProduceEndType endType);
-
-        void NotifyRequestStarted();
-        void NotifyRequestFinished();
+        void Stop();
     }
 }

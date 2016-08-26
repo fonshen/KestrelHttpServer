@@ -415,7 +415,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Networking
         {
             loop.Validate();
             handle.Validate();
-            Check(_uv_timer_init(loop, handle));
+            ThrowIfErrored(_uv_timer_init(loop, handle));
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -424,14 +424,14 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Networking
         unsafe public void timer_start(UvTimerHandle handle, uv_timer_cb cb, long timeout, long repeat)
         {
             handle.Validate();
-            Check(_uv_timer_start(handle, cb, timeout, repeat));
+            ThrowIfErrored(_uv_timer_start(handle, cb, timeout, repeat));
         }
 
         protected Func<UvTimerHandle, int> _uv_timer_stop;
         unsafe public void timer_stop(UvTimerHandle handle)
         {
             handle.Validate();
-            Check(_uv_timer_stop(handle));
+            ThrowIfErrored(_uv_timer_stop(handle));
         }
 
         public delegate int uv_tcp_getsockname_func(UvTcpHandle handle, out SockAddr addr, ref int namelen);

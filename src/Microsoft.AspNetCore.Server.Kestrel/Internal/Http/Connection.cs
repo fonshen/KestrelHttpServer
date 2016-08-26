@@ -38,8 +38,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         private TaskCompletionSource<object> _socketClosedTcs = new TaskCompletionSource<object>();
         private BufferSizeControl _bufferSizeControl;
 
-        private int _secondsSinceLastRequest;
-
         public Connection(ListenerContext context, UvStreamHandle socket) : base(context)
         {
             _socket = socket;
@@ -160,16 +158,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         // Called on Libuv thread
         public void Tick()
         {
-            if (_frame.Status == Frame.RequestProcessingStatus.RequestPending && // we're in between requests and
-                !SocketInput.IsCompleted)                                        // we haven't just started a new request
-            {
-                if (_secondsSinceLastRequest > ServerOptions.Limits.KeepAliveTimeout)
-                {
-                    StopAsync();
-                }
-            }
-
-            _secondsSinceLastRequest++;
+            _frame.Tick();
         }
 
         private void ApplyConnectionFilter()
@@ -293,13 +282,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             }
         }
 
-        void IConnectionControl.NotifyRequestStarted()
+        void IConnectionControl.Stop()
         {
-        }
-
-        void IConnectionControl.NotifyRequestFinished()
-        {
-            _secondsSinceLastRequest = 0;
+            StopAsync();
         }
 
         private static unsafe string GenerateConnectionId(long id)
