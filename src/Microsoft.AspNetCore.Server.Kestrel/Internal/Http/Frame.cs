@@ -1270,7 +1270,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         public void Tick()
         {
             if (_requestProcessingStatus == RequestProcessingStatus.RequestPending && // we're in between requests and
-                !SocketInput.IsCompleted)                                             // we haven't just started a new request
+                !SocketInput.IsCompleted)                                             // we're not about to start processing a new request
             {
                 if (_secondsSinceLastRequest > ServerOptions.Limits.KeepAliveTimeout)
                 {
