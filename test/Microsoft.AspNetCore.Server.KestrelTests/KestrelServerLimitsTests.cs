@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         [Fact]
         public void KeepAliveTimeoutDefault()
         {
-            Assert.Equal(5, (new KestrelServerLimits()).KeepAliveTimeout);
+            Assert.Equal(120, (new KestrelServerLimits()).KeepAliveTimeout);
         }
 
         [Theory]

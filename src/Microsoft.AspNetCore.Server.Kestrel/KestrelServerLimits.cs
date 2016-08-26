@@ -23,8 +23,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel
         // Matches the default LimitRequestFields in Apache httpd.
         private int _maxRequestHeaderCount = 100;
 
-        // Matches the default KeepAliveTimeout in Apache httpd.
-        private int _keepAliveTimeout = 5;
+        // Matches the default http.sys keep-alive timouet.
+        private int _keepAliveTimeout = 120;
 
         /// <summary>
         /// Gets or sets the maximum size of the response buffer before write
