@@ -1276,9 +1276,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 {
                     ConnectionControl.Stop();
                 }
-            }
 
-            _secondsSinceLastRequest++;
+                _secondsSinceLastRequest++;
+            }
         }
 
         public void RequestFinished()
