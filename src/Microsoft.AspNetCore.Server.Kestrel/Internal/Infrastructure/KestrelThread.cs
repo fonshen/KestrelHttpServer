@@ -280,7 +280,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
                     _loop.Init(_engine.Libuv);
                     _post.Init(_loop, OnPost, EnqueueCloseHandle);
                     _heartbeatTimer.Init(_loop, EnqueueCloseHandle);
-                    _heartbeatTimer.Start(OnHeartbeat, 1000, 1000);
+                    _heartbeatTimer.Start(OnHeartbeat, timeout: 1000, repeat: 1000);
                     _initCompleted = true;
                     tcs.SetResult(0);
                 }
