@@ -1272,7 +1272,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             if (_requestProcessingStatus == RequestProcessingStatus.RequestPending && // we're in between requests and
                 !SocketInput.IsCompleted)                                             // we're not about to start processing a new request
             {
-                if (_secondsSinceLastRequest > ServerOptions.Limits.KeepAliveTimeout)
+                if (_secondsSinceLastRequest > ServerOptions.Limits.KeepAliveTimeout.TotalSeconds)
                 {
                     ConnectionControl.Stop();
                 }

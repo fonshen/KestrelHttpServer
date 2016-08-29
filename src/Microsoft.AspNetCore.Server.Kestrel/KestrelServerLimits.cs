@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel
         private int _maxRequestHeaderCount = 100;
 
         // Matches the default http.sys keep-alive timouet.
-        private int _keepAliveTimeout = 120;
+        private TimeSpan _keepAliveTimeout = TimeSpan.FromMinutes(2);
 
         /// <summary>
         /// Gets or sets the maximum size of the response buffer before write
@@ -143,12 +143,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel
         }
 
         /// <summary>
-        /// Gets or sets the keep-alive timeout, in seconds.
+        /// Gets or sets the keep-alive timeout.
         /// </summary>
         /// <remarks>
-        /// Defaults to 5 seconds.
+        /// Defaults to 2 minutes. Timeout granularity is in seconds. Sub-second values will be rounded to the next second.
         /// </remarks>
-        public int KeepAliveTimeout
+        public TimeSpan KeepAliveTimeout
         {
             get
             {
@@ -156,11 +156,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel
             }
             set
             {
-                if (value <= 0)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value), "Value must a positive integer.");
-                }
-                _keepAliveTimeout = value;
+                _keepAliveTimeout = TimeSpan.FromSeconds(Math.Ceiling(value.TotalSeconds));
             }
         }
     }

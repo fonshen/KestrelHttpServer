@@ -152,29 +152,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         [Fact]
         public void KeepAliveTimeoutDefault()
         {
-            Assert.Equal(120, (new KestrelServerLimits()).KeepAliveTimeout);
+            Assert.Equal(TimeSpan.FromMinutes(2), new KestrelServerLimits().KeepAliveTimeout);
         }
 
         [Theory]
-        [InlineData(int.MinValue)]
-        [InlineData(-1)]
         [InlineData(0)]
-        public void KeepAliveTimeoutInvalid(int value)
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
-            {
-                (new KestrelServerLimits()).KeepAliveTimeout = value;
-            });
-        }
-
-        [Theory]
-        [InlineData(1)]
-        [InlineData(int.MaxValue)]
-        public void KeepAliveTimeoutValid(int value)
+        [InlineData(0.5)]
+        [InlineData(2.1)]
+        [InlineData(2.5)]
+        [InlineData(2.9)]
+        public void KeepAliveTimeoutIsRoundedToTheNextSecond(double seconds)
         {
             var o = new KestrelServerLimits();
-            o.KeepAliveTimeout = value;
-            Assert.Equal(value, o.KeepAliveTimeout);
+            o.KeepAliveTimeout = TimeSpan.FromSeconds(seconds);
+            Assert.Equal(Math.Ceiling(seconds), o.KeepAliveTimeout.TotalSeconds);
         }
     }
 }

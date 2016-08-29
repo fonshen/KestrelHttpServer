@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -13,7 +14,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
 {
     public class KeepAliveTimeoutTests
     {
-        private const int KeepAliveTimeout = 1; // seconds
+        private static readonly TimeSpan KeepAliveTimeout = TimeSpan.FromSeconds(1);
         private const int LongDelay = 5000; // milliseconds
         private const int ShortDelay = 250; // milliseconds
 
