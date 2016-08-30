@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             timer.Start(_ =>
             {
                 callbackInvoked = true;
-            }, 50, 0);
+            }, 1, 0);
             loop.Run();
 
             timer.Dispose();
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                 {
                     timer.Stop();
                 }
-            }, 50, 50);
+            }, 1, 1);
 
             loop.Run();
 
