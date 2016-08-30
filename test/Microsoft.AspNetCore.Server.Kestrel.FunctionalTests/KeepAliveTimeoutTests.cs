@@ -17,168 +17,160 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
         private const int ShortDelay = 250; // milliseconds
 
         [Fact]
-        public async Task ConnectionClosedWhenKeepAliveTimeoutExpires()
+        public async Task TestKeepAliveTimeout()
         {
             using (var server = CreateServer())
             {
-                using (var connection = new TestConnection(server.Port))
+                var tasks = new[]
+                {
+                    ConnectionClosedWhenKeepAliveTimeoutExpires(server),
+                    ConnectionClosedWhenKeepAliveTimeoutExpiresAfterChunkedRequest(server),
+                    KeepAliveTimeoutResetsBetweenContentLengthRequests(server),
+                    KeepAliveTimeoutResetsBetweenChunkedRequests(server),
+                    KeepAliveTimeoutNotTriggeredMidContentLengthRequest(server),
+                    KeepAliveTimeoutNotTriggeredMidChunkedRequest(server),
+                    ConnectionTimesOutWhenOpenedButNoRequestSent(server)
+                };
+
+                await Task.WhenAll(tasks);
+            }
+        }
+
+        private async Task ConnectionClosedWhenKeepAliveTimeoutExpires(TestServer server)
+        {
+            using (var connection = new TestConnection(server.Port))
+            {
+                await connection.Send(
+                    "GET / HTTP/1.1",
+                    "",
+                    "");
+                await ReceiveResponse(connection, server.Context);
+
+                await Task.Delay(LongDelay);
+
+                await Assert.ThrowsAsync<IOException>(async () =>
                 {
                     await connection.Send(
                         "GET / HTTP/1.1",
                         "",
                         "");
                     await ReceiveResponse(connection, server.Context);
-
-                    await Task.Delay(LongDelay);
-
-                    await Assert.ThrowsAsync<IOException>(async () =>
-                    {
-                        await connection.Send(
-                            "GET / HTTP/1.1",
-                            "",
-                            "");
-                        await ReceiveResponse(connection, server.Context);
-                    });
-                }
+                });
             }
         }
 
-        [Fact]
-        public async Task ConnectionClosedWhenKeepAliveTimeoutExpiresAfterChunkedRequest()
+        private async Task ConnectionClosedWhenKeepAliveTimeoutExpiresAfterChunkedRequest(TestServer server)
         {
-            using (var server = CreateServer())
+            using (var connection = new TestConnection(server.Port))
             {
-                using (var connection = new TestConnection(server.Port))
+                await connection.Send(
+                        "POST / HTTP/1.1",
+                        "Transfer-Encoding: chunked",
+                        "",
+                        "5", "hello",
+                        "6", " world",
+                        "0",
+                         "",
+                         "");
+                await ReceiveResponse(connection, server.Context);
+
+                await Task.Delay(LongDelay);
+
+                await Assert.ThrowsAsync<IOException>(async () =>
                 {
                     await connection.Send(
-                            "POST / HTTP/1.1",
-                            "Transfer-Encoding: chunked",
-                            "",
-                            "5", "hello",
-                            "6", " world",
-                            "0",
-                             "",
-                             "");
+                        "GET / HTTP/1.1",
+                        "",
+                        "");
                     await ReceiveResponse(connection, server.Context);
-
-                    await Task.Delay(LongDelay);
-
-                    await Assert.ThrowsAsync<IOException>(async () =>
-                    {
-                        await connection.Send(
-                            "GET / HTTP/1.1",
-                            "",
-                            "");
-                        await ReceiveResponse(connection, server.Context);
-                    });
-                }
+                });
             }
         }
 
-        [Fact]
-        public async Task KeepAliveTimeoutResetsBetweenContentLengthRequests()
+        private async Task KeepAliveTimeoutResetsBetweenContentLengthRequests(TestServer server)
         {
-            using (var server = CreateServer())
+            using (var connection = new TestConnection(server.Port))
             {
-                using (var connection = new TestConnection(server.Port))
+                for (var i = 0; i < 10; i++)
                 {
-                    for (var i = 0; i < 10; i++)
-                    {
-                        await connection.Send(
-                            "GET / HTTP/1.1",
-                            "",
-                            "");
-                        await ReceiveResponse(connection, server.Context);
-                        await Task.Delay(ShortDelay);
-                    }
+                    await connection.Send(
+                        "GET / HTTP/1.1",
+                        "",
+                        "");
+                    await ReceiveResponse(connection, server.Context);
+                    await Task.Delay(ShortDelay);
                 }
             }
         }
 
-        [Fact]
-        public async Task KeepAliveTimeoutResetsBetweenChunkedRequests()
+        private async Task KeepAliveTimeoutResetsBetweenChunkedRequests(TestServer server)
         {
-            using (var server = CreateServer())
+            using (var connection = new TestConnection(server.Port))
             {
-                using (var connection = new TestConnection(server.Port))
-                {
-                    for (var i = 0; i < 5; i++)
-                    {
-                        await connection.Send(
-                            "POST / HTTP/1.1",
-                            "Transfer-Encoding: chunked",
-                            "",
-                            "5", "hello",
-                            "6", " world",
-                            "0",
-                             "",
-                             "");
-                        await ReceiveResponse(connection, server.Context);
-                        await Task.Delay(ShortDelay);
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public async Task KeepAliveTimeoutNotTriggeredMidContentLengthRequest()
-        {
-            using (var server = CreateServer())
-            {
-                using (var connection = new TestConnection(server.Port))
+                for (var i = 0; i < 5; i++)
                 {
                     await connection.Send(
                         "POST / HTTP/1.1",
-                        "Content-Length: 8",
+                        "Transfer-Encoding: chunked",
                         "",
-                        "a");
-                    await Task.Delay(LongDelay);
-                    await connection.Send("bcdefgh");
+                        "5", "hello",
+                        "6", " world",
+                        "0",
+                         "",
+                         "");
                     await ReceiveResponse(connection, server.Context);
+                    await Task.Delay(ShortDelay);
                 }
             }
         }
 
-        [Fact]
-        public async Task KeepAliveTimeoutNotTriggeredMidChunkedRequest()
+        private async Task KeepAliveTimeoutNotTriggeredMidContentLengthRequest(TestServer server)
         {
-            using (var server = CreateServer())
+            using (var connection = new TestConnection(server.Port))
             {
-                using (var connection = new TestConnection(server.Port))
-                {
-                    await connection.Send(
-                            "POST / HTTP/1.1",
-                            "Transfer-Encoding: chunked",
-                            "",
-                            "5", "hello",
-                            "");
-                    await Task.Delay(LongDelay);
-                    await connection.Send(
-                            "6", " world",
-                            "0",
-                             "",
-                             "");
-                    await ReceiveResponse(connection, server.Context);
-                }
+                await connection.Send(
+                    "POST / HTTP/1.1",
+                    "Content-Length: 8",
+                    "",
+                    "a");
+                await Task.Delay(LongDelay);
+                await connection.Send("bcdefgh");
+                await ReceiveResponse(connection, server.Context);
             }
         }
 
-        [Fact]
-        public async Task ConnectionTimesOutWhenOpenedButNoRequestSent()
+        private async Task KeepAliveTimeoutNotTriggeredMidChunkedRequest(TestServer server)
         {
-            using (var server = CreateServer())
+            using (var connection = new TestConnection(server.Port))
             {
-                using (var connection = new TestConnection(server.Port))
+                await connection.Send(
+                        "POST / HTTP/1.1",
+                        "Transfer-Encoding: chunked",
+                        "",
+                        "5", "hello",
+                        "");
+                await Task.Delay(LongDelay);
+                await connection.Send(
+                        "6", " world",
+                        "0",
+                         "",
+                         "");
+                await ReceiveResponse(connection, server.Context);
+            }
+        }
+
+        private async Task ConnectionTimesOutWhenOpenedButNoRequestSent(TestServer server)
+        {
+            using (var connection = new TestConnection(server.Port))
+            {
+                await Task.Delay(LongDelay);
+                await Assert.ThrowsAsync<IOException>(async () =>
                 {
-                    await Task.Delay(LongDelay);
-                    await Assert.ThrowsAsync<IOException>(async () =>
-                    {
-                        await connection.Send(
-                            "GET / HTTP/1.1",
-                            "",
-                            "");
-                    });
-                }
+                    await connection.Send(
+                        "GET / HTTP/1.1",
+                        "",
+                        "");
+                });
             }
         }
 
