@@ -215,7 +215,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             }
         }
 
-        public bool HasResponseStarted { get; private set; }
+        public bool HasResponseStarted => _requestProcessingStatus == RequestProcessingStatus.ResponseStarted;
 
         protected FrameRequestHeaders FrameRequestHeaders { get; private set; }
 
@@ -279,7 +279,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             _onStarting = null;
             _onCompleted = null;
 
-            HasResponseStarted = false;
             _requestProcessingStatus = RequestProcessingStatus.RequestPending;
             _keepAlive = false;
             _autoChunk = false;
@@ -606,7 +605,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 return;
             }
 
-            HasResponseStarted = true;
+            _requestProcessingStatus = RequestProcessingStatus.ResponseStarted;
 
             var statusBytes = ReasonPhrases.ToStatusBytes(StatusCode, ReasonPhrase);
 
@@ -1269,8 +1268,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         public void Tick()
         {
-            if (_requestProcessingStatus == RequestProcessingStatus.RequestPending && // we're in between requests and
-                !SocketInput.IsCompleted)                                             // we're not about to start processing a new request
+            // we're in between requests and not about to start processing a new one
+            if (_requestProcessingStatus == RequestProcessingStatus.RequestPending && !SocketInput.IsCompleted)
             {
                 if (_secondsSinceLastRequest > ServerOptions.Limits.KeepAliveTimeout.TotalSeconds)
                 {
@@ -1299,7 +1298,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         public enum RequestProcessingStatus
         {
             RequestPending,
-            RequestStarted
+            RequestStarted,
+            ResponseStarted
         }
     }
 }
