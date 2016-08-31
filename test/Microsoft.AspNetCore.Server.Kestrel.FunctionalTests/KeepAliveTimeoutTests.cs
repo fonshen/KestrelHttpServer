@@ -12,9 +12,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
 {
     public class KeepAliveTimeoutTests
     {
-        private static readonly TimeSpan KeepAliveTimeout = TimeSpan.FromSeconds(1);
-        private const int LongDelay = 5000; // milliseconds
-        private const int ShortDelay = 250; // milliseconds
+        private static readonly TimeSpan KeepAliveTimeout = TimeSpan.FromSeconds(10);
+        private static readonly int LongDelay = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
+        private static readonly int ShortDelay = LongDelay / 10;
 
         [Fact]
         public async Task TestKeepAliveTimeout()
